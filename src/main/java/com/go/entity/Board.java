@@ -1,6 +1,10 @@
 package com.go.entity;
 
+import java.util.ArrayList;
+import java.util.List;
+
 import org.springframework.data.annotation.Id;
+
 
 public class Board {
 
@@ -13,9 +17,15 @@ public class Board {
     private String blackPlayerId;
 
     private int[][] boardState;  // values: 0 empty, 1 black, 2 white, 19x19 2D-array
+    
+    private int[][] prevBoardState;
+    private int[][] preprevBoardState;
+
     private boolean blackToMove;
     private int capturedBlack;
     private int capturedWhite;
+
+
 
     public  Board(String creatorId){
         //initialize the board with all zeros
@@ -34,6 +44,22 @@ public class Board {
         this.setCapturedWhite(0);
         this.setBlackToMove(true);
 
+    }
+
+    public int[][] getPrevBoardState() {
+        return prevBoardState;
+    }
+
+    public void setPrevBoardState(int[][] prevBoardState) {
+        this.prevBoardState = prevBoardState;
+    }
+
+    public int[][] getPreprevBoardState() {
+        return preprevBoardState;
+    }
+
+    public void setPreprevBoardState(int[][] preprevBoardState) {
+        this.preprevBoardState = preprevBoardState;
     }
 
     public String getCreatorId() {
@@ -118,5 +144,172 @@ public class Board {
             }
             System.out.println(); 
         }
+    }
+    
+    private static boolean containsPoint(List<int[]> list, int row, int col) {
+        for (int[] point : list) {
+            if (point[0] == row && point[1] == col) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+
+    public  List<int[]> findGroup( int row, int col) {
+        int targetColor = boardState[row][col];
+        boolean[][] visited = new boolean[boardState.length][boardState[0].length];
+        List<int[]> group = new ArrayList<>();
+
+        searchNeighbors(row, col, targetColor, visited, group);
+
+        return group;
+    }
+
+    private  void searchNeighbors( int row, int col, int targetColor, boolean[][] visited, List<int[]> connectedGroup) {
+        if (row < 0 || row >= boardState.length || col < 0 || col >= boardState[0].length || visited[row][col] || boardState[row][col] != targetColor) {
+            return;
+        }
+
+        visited[row][col] = true;
+        connectedGroup.add(new int[]{row, col});
+
+        // Check neighboring points
+        searchNeighbors(row - 1, col, targetColor, visited, connectedGroup); // Up
+        searchNeighbors(row + 1, col, targetColor, visited, connectedGroup); // Down
+        searchNeighbors(row, col - 1, targetColor, visited, connectedGroup); // Left
+        searchNeighbors(row, col + 1, targetColor, visited, connectedGroup); // Right
+    }
+    private  boolean checkColor( int row, int col, int targetColor) {
+        if (row < 0 || row >= boardState.length || col < 0 || col >= boardState[0].length || boardState[row][col] != targetColor) {
+            return false;
+        }
+        return true;
+    }
+
+    public boolean checkLiberty( List<int[]> group){
+        for(int[] point : group){
+            int row = point[0];
+            int col = point[1];
+            if(checkColor(row, col, 0)
+                || checkColor(row+1, col, 0)
+                || checkColor(row-1, col, 0)
+                || checkColor(row, col+1, 0)
+                || checkColor(row, col-1, 0)){
+                    return true;
+                }
+        }
+        return false;
+    }
+    //might be useful
+    public static int complementColor(int color){
+        if( color  == 0){
+            return 0;
+        }
+        else{
+            return (color % 2) + 1;
+        }
+    }
+
+    private static boolean areArraysIdentical(int[][] array1, int[][] array2) {
+        if (array1.length != array2.length || array1[0].length != array2[0].length) {
+            return false; 
+        }
+
+        for (int i = 0; i < array1.length; i++) {
+            for (int j = 0; j < array1[0].length; j++) {
+                if (array1[i][j] != array2[i][j]) {
+                    return false;
+                }
+            }
+        }
+
+        return true; 
+    }
+
+
+    //Capture Logic fro Go
+
+    public boolean updateBoard(Move move){
+        //check validity of the move
+        if(move.getCol()<0 || move.getCol()>boardState[0].length -1
+            || move.getRow()<0 || move.getRow()>boardState.length-1){
+                return false;
+            }
+        if( (!(move.getColor() == 1)) && (!(move.getColor()==2))){
+            return false;
+        }
+        //save old state
+        int[][] oldState = new int[boardState.length][boardState[0].length];
+        for(int i=0; i < boardState.length; i++){
+            System.arraycopy(boardState[i], 0, oldState, 0, boardState[0].length);
+        }
+        //make the move 
+        boardState[move.getRow()][move.getCol()] = move.getColor();
+
+        List<int[]> captured = new ArrayList<>();
+        List<int[]> toCapture = new ArrayList<>();
+        //check all adjacent groups
+        //(row+1,col)
+        if(checkColor(move.getRow()+1, move.getCol(), complementColor(move.getColor()))){
+            toCapture = new ArrayList<>(findGroup(move.getRow()+1, move.getCol()));
+            if( !(checkLiberty(toCapture))){
+                captured.addAll(toCapture);
+            }
+        }
+        //(row-1,col)
+        if(checkColor(move.getRow()-1, move.getCol(), complementColor(move.getColor()))
+            && !(containsPoint(toCapture, move.getRow()-1, move.getCol()))){
+            toCapture = new ArrayList<>(findGroup(move.getRow()-1, move.getCol()));
+            if( !(checkLiberty(toCapture))){
+                captured.addAll(toCapture);
+            }
+        }
+        //(row,col+1)
+        if(checkColor(move.getRow(), move.getCol()+1, complementColor(move.getColor()))
+            && !(containsPoint(toCapture, move.getRow(), move.getCol()+1))){
+            toCapture = new ArrayList<>(findGroup(move.getRow(), move.getCol()+1));
+            if( !(checkLiberty(toCapture))){
+                captured.addAll(toCapture);
+            }
+        }   
+        //(row,col-1)
+        if(checkColor(move.getRow(), move.getCol()-1, complementColor(move.getColor()))
+            && !(containsPoint(toCapture, move.getRow(), move.getCol()-1))){
+            toCapture = new ArrayList<>(findGroup(move.getRow(), move.getCol()-1));
+            if( !(checkLiberty(toCapture))){
+                captured.addAll(toCapture);
+            }
+        }
+        //Remove Captured Stones
+        for (int[] point : captured) {
+            boardState[point[0]][point[1]] = 0;
+        }
+
+        //check the Ko-Rule
+        if(areArraysIdentical(boardState, preprevBoardState)){
+            //take back move
+            for(int i=0; i < boardState.length; i++){
+            System.arraycopy(oldState[i], 0, oldState, 0, oldState[0].length);
+            return false;
+        }
+        }
+
+        //add captured stones to attributes
+        if(move.getColor()==1){
+            capturedBlack = capturedBlack+captured.size();
+        }
+        if(move.getColor()==2){
+                capturedWhite = capturedWhite+captured.size();
+        }
+        
+
+        //save previous and pre-previuous boardstate
+        preprevBoardState = prevBoardState;
+        prevBoardState = oldState;
+        
+        //since this was a valid move 
+        return true;
+
     }
 }

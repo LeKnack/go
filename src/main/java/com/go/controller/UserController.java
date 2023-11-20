@@ -23,9 +23,12 @@ public class UserController {
 
     @PostMapping("/create")
     public ResponseEntity<String> createUser(@RequestBody UserView userView) {
+        System.out.println("Received request body: " + userView);
         String serviceResponse = userService.createUser(UserMappingService.mapViewToDto(userView));
+        
+        
         //check for error creating user
-        if (!(serviceResponse == "ok")) {
+        if ((serviceResponse == "could not create user, username invalid!")) {
             return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("Invalid data received");
         }
         return ResponseEntity.ok(serviceResponse);
@@ -40,8 +43,8 @@ public class UserController {
 
     @GetMapping("/{userId}")
     public ResponseEntity<UserView> getUserById(@PathVariable String userId) {
-        UserView user = UserMappingService.mapDtoToView(userService.getUserbyId(userId));
-        return ResponseEntity.ok(user);
+        UserView userView = UserMappingService.mapDtoToView(userService.getUserbyId(userId));
+        return ResponseEntity.ok(userView);
     }
 
     @PutMapping("/{id}")

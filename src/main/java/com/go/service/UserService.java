@@ -16,7 +16,7 @@ public class UserService {
     private final UserRepository userRepository;
 
     public Boolean validName(String name){
-        return ((name.length() <= 32) && (name.length() >= 0));
+        return name != null && !name.isEmpty() && name.length() < 32;
     }
 
     public UserService(UserRepository userRepository) {
@@ -32,8 +32,8 @@ public class UserService {
             if (!(validName(user.getUserName())) ) {
                 return "could not create user, username invalid!";
             }
-            userRepository.save(user);
-            return "ok";
+            return  "succesfully created user" + userRepository.save(user).getId();
+            
         } catch (Exception e) {
             return "Error creating user: " + e.getMessage();
         }

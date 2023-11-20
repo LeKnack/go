@@ -11,6 +11,7 @@ public class UserMappingService {
     public static User mapDtoToEntity(UserDto userDto) {
         User user = new User();
         user.setUserName(userDto.getUserName());
+        user.setId(userDto.getId());
         return user;
     }
 
@@ -24,12 +25,14 @@ public class UserMappingService {
     public static UserView mapDtoToView(UserDto userDto) {
         UserView userView = new UserView();
         userView.setUserName(userDto.getUserName());
+        userView.setId(userDto.getId());
         return userView;
     }
 
     public static UserDto mapViewToDto(UserView userView) {
         UserDto userDto = new UserDto();
         userDto.setUserName(userView.getUserName());
+        userDto.setId(userView.getId());
         return userDto;
     }
     
