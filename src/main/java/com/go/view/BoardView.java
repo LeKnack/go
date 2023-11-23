@@ -2,6 +2,7 @@ package com.go.view;
 
 public class BoardView {
 
+    private String creatorId;
     private String id;
     private int[][] boardState;
     private boolean blackToMove;
@@ -38,6 +39,12 @@ public class BoardView {
     }
     public void setId(String id) {
         this.id = id;
+    }
+    public String getCreatorId() {
+        return creatorId;
+    }
+    public void setCreatorId(String creatorId) {
+        this.creatorId = creatorId;
     }
 
 

@@ -1,6 +1,8 @@
 package com.go.entity;
 
+import java.lang.reflect.Array;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 
 import org.springframework.data.annotation.Id;
@@ -25,7 +27,24 @@ public class Board {
     private int capturedBlack;
     private int capturedWhite;
 
+    public  Board(){
+        //initialize the board with all zeros
+        int[][] array = new int[19][19];
+        for (int i = 0; i < array.length; i++) {
+            for (int j = 0; j < array[i].length; j++) {
+                array[i][j] = 0;
+            }
+        }
+        this.setBoardState(array);
+        this.setCreatorId("0");
+        //set creator to play balck and white by default
+        this.setBlackPlayerId(creatorId);
+        this.setWhitePlayerId(creatorId);
+        this.setCapturedBlack(0);
+        this.setCapturedWhite(0);
+        this.setBlackToMove(true);
 
+    }
 
     public  Board(String creatorId){
         //initialize the board with all zeros
@@ -227,10 +246,21 @@ public class Board {
         return true; 
     }
 
+    public static void printBoardState(int[][] boardState) {
+        for (int[] row : boardState) {
+            for (int cell : row) {
+                System.out.print(cell + " ");
+            }
+            System.out.println();
+        }
+        System.out.println();
+    }
 
     //Capture Logic fro Go
 
     public boolean updateBoard(Move move){
+
+        System.out.println(String.format("Move: %d stone at (%d, %d)", move.getColor(), move.getRow(), move.getCol())); 
         //check validity of the move
         if(move.getCol()<0 || move.getCol()>boardState[0].length -1
             || move.getRow()<0 || move.getRow()>boardState.length-1){
@@ -242,10 +272,13 @@ public class Board {
         //save old state
         int[][] oldState = new int[boardState.length][boardState[0].length];
         for(int i=0; i < boardState.length; i++){
-            System.arraycopy(boardState[i], 0, oldState, 0, boardState[0].length);
+            System.arraycopy(boardState[i], 0, oldState[i], 0, boardState[0].length);
         }
         //make the move 
         boardState[move.getRow()][move.getCol()] = move.getColor();
+
+        System.out.println("provisional move made");
+        printBoardState(boardState);
 
         List<int[]> captured = new ArrayList<>();
         List<int[]> toCapture = new ArrayList<>();
@@ -281,30 +314,42 @@ public class Board {
                 captured.addAll(toCapture);
             }
         }
-        //Remove Captured Stones
-        for (int[] point : captured) {
-            boardState[point[0]][point[1]] = 0;
+        System.out.println("Done checking neighbors");
+        for (int[] element : toCapture) {
+            System.out.println(Arrays.toString(element));
         }
-
-        //check the Ko-Rule
-        if(areArraysIdentical(boardState, preprevBoardState)){
-            //take back move
-            for(int i=0; i < boardState.length; i++){
-            System.arraycopy(oldState[i], 0, oldState, 0, oldState[0].length);
-            return false;
-        }
-        }
-
-        //add captured stones to attributes
-        if(move.getColor()==1){
-            capturedBlack = capturedBlack+captured.size();
-        }
-        if(move.getColor()==2){
-                capturedWhite = capturedWhite+captured.size();
+        System.out.println("Done checking print captured");
+        for (int[] element : captured) {
+            System.out.println(Arrays.toString(element));
         }
         
+        if(captured.size()>0){
+            System.out.println("Capturing");
+            //Remove Captured Stones
+            for (int[] point : captured) {
+                boardState[point[0]][point[1]] = 0;
+            }
+
+            //check the Ko-Rule
+            if(areArraysIdentical(boardState, preprevBoardState)){
+                //take back move
+                for(int i=0; i < boardState.length; i++){
+                System.arraycopy(oldState[i], 0, oldState[i], 0, oldState[0].length);
+                return false;
+            }
+            }
+
+            //add captured stones to attributes
+            if(move.getColor()==1){
+                capturedBlack = capturedBlack+captured.size();
+            }
+            if(move.getColor()==2){
+                    capturedWhite = capturedWhite+captured.size();
+            }
+        }
 
         //save previous and pre-previuous boardstate
+        //can i reassign the reference here?
         preprevBoardState = prevBoardState;
         prevBoardState = oldState;
         

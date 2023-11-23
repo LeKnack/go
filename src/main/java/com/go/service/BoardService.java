@@ -66,8 +66,10 @@ public class BoardService {
             } 
             //Capture and KO-logic needs to go here
 
+
             //make the actual move
-            board.setSpot(moveDto.getRow(), moveDto.getCol(), moveDto.getColor());
+            //board.setSpot(moveDto.getRow(), moveDto.getCol(), moveDto.getColor());
+            board.updateBoard(MoveMappingService.dtoToEntity(moveDto));
             boardRepository.save(board);
             return "move made successfully";
 

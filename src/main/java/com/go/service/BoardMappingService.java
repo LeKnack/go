@@ -42,7 +42,7 @@ public class BoardMappingService {
 
     public static BoardView mapDtoToView(BoardDto boardDto) {
         BoardView boardView = new BoardView();
-        //boardView.setCreatorId(boardDto.getCreatorId());
+        boardView.setCreatorId(boardDto.getCreatorId());
         //boardView.setWhitePlayerId(boardDto.getWhitePlayerId());
         //boardView.setBlackPlayerId(boardDto.getBlackPlayerId());
         boardView.setBoardState(boardDto.getBoardState());
@@ -55,6 +55,7 @@ public class BoardMappingService {
 
     public static BoardDto mapViewToDto(BoardView boardView) {
         BoardDto boardDto =  new BoardDto();
+        boardDto.setCreatorId(boardView.getCreatorId());
         boardDto.setBoardState(boardView.getBoardState());
         boardDto.setBlackToMove(boardView.isBlackToMove());
         boardDto.setCapturedBlack(boardView.getCapturedBlack());

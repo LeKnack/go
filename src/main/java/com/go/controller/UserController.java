@@ -23,7 +23,6 @@ public class UserController {
 
     @PostMapping("/create")
     public ResponseEntity<String> createUser(@RequestBody UserView userView) {
-        System.out.println("Received request body: " + userView);
         String serviceResponse = userService.createUser(UserMappingService.mapViewToDto(userView));
         
         
