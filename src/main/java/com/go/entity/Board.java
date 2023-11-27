@@ -4,6 +4,7 @@ import java.lang.reflect.Array;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
+import java.util.UUID;
 
 import org.springframework.data.annotation.Id;
 
@@ -29,6 +30,8 @@ public class Board {
 
     public  Board(){
         //initialize the board with all zeros
+        int[][] arrayPrePrev = new int[19][19];
+        int[][] arrayOld = new int[19][19];
         int[][] array = new int[19][19];
         for (int i = 0; i < array.length; i++) {
             for (int j = 0; j < array[i].length; j++) {
@@ -36,6 +39,8 @@ public class Board {
             }
         }
         this.setBoardState(array);
+        this.setPrevBoardState(arrayOld);
+        this.setPreprevBoardState(arrayPrePrev);
         this.setCreatorId("0");
         //set creator to play balck and white by default
         this.setBlackPlayerId(creatorId);
@@ -44,6 +49,7 @@ public class Board {
         this.setCapturedWhite(0);
         this.setBlackToMove(true);
 
+        this.id = UUID.randomUUID().toString();
     }
 
     public  Board(String creatorId){
@@ -56,13 +62,14 @@ public class Board {
         }
         this.setBoardState(array);
         this.setCreatorId(creatorId);
-        //set creator to play balck and white by default
+        //set creator to play black and white by default
         this.setBlackPlayerId(creatorId);
         this.setWhitePlayerId(creatorId);
         this.setCapturedBlack(0);
         this.setCapturedWhite(0);
         this.setBlackToMove(true);
-
+        
+        this.id = UUID.randomUUID().toString();
     }
 
     public int[][] getPrevBoardState() {
@@ -261,7 +268,12 @@ public class Board {
     public boolean updateBoard(Move move){
 
         System.out.println(String.format("Move: %d stone at (%d, %d)", move.getColor(), move.getRow(), move.getCol())); 
-        //check validity of the move
+        //check the validity of the moves Color
+        if((move.getColor()==1 && !(blackToMove)) || (move.getColor()==2) && blackToMove ){
+            System.out.println("Nout your Turn, Black to Play: " + blackToMove);
+            return false;
+        }
+        //check validity of the moves coordinates
         if(move.getCol()<0 || move.getCol()>boardState[0].length -1
             || move.getRow()<0 || move.getRow()>boardState.length-1){
                 return false;
@@ -277,8 +289,7 @@ public class Board {
         //make the move 
         boardState[move.getRow()][move.getCol()] = move.getColor();
 
-        System.out.println("provisional move made");
-        printBoardState(boardState);
+
 
         List<int[]> captured = new ArrayList<>();
         List<int[]> toCapture = new ArrayList<>();
@@ -322,6 +333,16 @@ public class Board {
         for (int[] element : captured) {
             System.out.println(Arrays.toString(element));
         }
+
+        //save previous and pre-previuous boardstate
+        //can i reassign the reference here?
+        preprevBoardState = prevBoardState;
+        prevBoardState = oldState;
+        System.out.println("oldstate");
+        printBoardState(prevBoardState);
+
+        System.out.println("preprevboardstate");
+        printBoardState(preprevBoardState);
         
         if(captured.size()>0){
             System.out.println("Capturing");
@@ -348,10 +369,15 @@ public class Board {
             }
         }
 
-        //save previous and pre-previuous boardstate
-        //can i reassign the reference here?
-        preprevBoardState = prevBoardState;
-        prevBoardState = oldState;
+        System.out.println("move made");
+        printBoardState(boardState);
+
+        if(move.getColor()==1){
+            blackToMove=false;
+        }
+        if(move.getColor()==2){
+            blackToMove=true;
+        }
         
         //since this was a valid move 
         return true;

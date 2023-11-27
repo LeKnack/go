@@ -4,7 +4,7 @@ public class Move {
 
     private int row;
     private int col;
-    private int color; //0 is black 1 is white
+    private int color; //1 is black 2 is white, 0 is empty
     public int getRow() {
         return row;
     }

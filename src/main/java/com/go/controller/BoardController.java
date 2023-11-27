@@ -5,7 +5,10 @@ import com.go.dto.MoveDto;
 import com.go.dto.UserDto;
 import com.go.service.BoardMappingService;
 import com.go.service.BoardService;
+import com.go.service.UserMappingService;
 import com.go.view.BoardView;
+import com.go.view.UserView;
+
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
@@ -35,9 +38,37 @@ public class BoardController {
         return ResponseEntity.ok(boards);
     }
 
-    @PutMapping("/{boardId}")
-    public ResponseEntity<String> makeMove(@PathVariable String boardId,@RequestBody MoveDto moveDto) {
-        return ResponseEntity.ok(boardService.makeMove(boardId, moveDto));
+    @GetMapping("/{boardId}")
+    public ResponseEntity<BoardView> getBoardById(@PathVariable String boardId) {
+        BoardView boardView = BoardMappingService.mapDtoToView(boardService.getBoardbyId(boardId));
+        return ResponseEntity.ok(boardView);
     }
-    // Add other endpoints for updating, deleting, and retrieving individual boards as needed
+
+    @PutMapping("/{boardId}")
+    public ResponseEntity<String> makeMove(@PathVariable String boardId, @RequestParam String userId,@RequestBody MoveDto moveDto) {
+        return ResponseEntity.ok(boardService.makeMove(boardId, userId, moveDto));
+    }
+    @DeleteMapping("/delete/{boardId}")
+    public ResponseEntity<String> deleteBoard(@PathVariable String boardId, @RequestParam String userId) {
+        String result = boardService.deleteBoard(boardId, userId);
+        return ResponseEntity.ok(result);
+    }
+
+    @PostMapping("/join/{boardId}")
+    public ResponseEntity<String> joinBoard(@PathVariable String boardId, @RequestParam String userId) {
+        String result = boardService.joinBoard(boardId, userId);
+        return ResponseEntity.ok(result);
+    }
+
+    @PutMapping("/swapColors/{boardId}")
+    public ResponseEntity<String> swapColors(@PathVariable String boardId, @RequestParam String userId) {
+        return ResponseEntity.ok(boardService.swapColors(boardId, userId));
+    }
+
+    @PatchMapping("/leaveOrKick/{boardId}")
+    public ResponseEntity<String> leaveOrKick(@PathVariable String boardId, @RequestParam String userId) {
+        return ResponseEntity.ok(boardService.leaveOrKick(boardId, userId));
+    }
+
+
 }

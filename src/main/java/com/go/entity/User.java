@@ -1,14 +1,18 @@
 package com.go.entity;
 
+import java.util.UUID;
+
 import org.springframework.data.annotation.Id;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 
+import org.springframework.data.mongodb.core.mapping.Document;
+import org.springframework.data.mongodb.core.mapping.Field;
+
 public class User {
     @Id
-    @JsonProperty("id")
     private String id;
-
+    
     private String userName;
 
     //getters and setters
@@ -21,10 +25,12 @@ public class User {
     }
 
 
-    public User(){
-
+    public User() {
+        this.id = UUID.randomUUID().toString();
     }
-    public User(String userName){
+
+    public User(String userName) {
+        this.id = UUID.randomUUID().toString();
         this.userName = userName;
     }
     @Override
